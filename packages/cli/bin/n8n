@@ -60,6 +60,12 @@ if (!globalThis.crypto?.getRandomValues) {
 	globalThis.crypto = require('node:crypto').webcrypto;
 }
 
+if [[ -z "$N8N_PORT" ]]; then
+  N8N_PORT=5678
+fi
+
+exec node packages/cli/bin/n8n start --listen 0.0.0.0 --port $N8N_PORT "$@"
+
 (async () => {
 	const oclif = await import('@oclif/core');
 	await oclif.execute({ dir: __dirname });
