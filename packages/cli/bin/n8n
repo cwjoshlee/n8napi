@@ -1,38 +1,34 @@
 #!/usr/bin/env node
-
 const path = require('path');
-
-// Make sure that it also find the config folder when it
+// Make sure that it also find the config folder when it 
 // did get started from another folder that the root one.
 process.env.NODE_CONFIG_DIR = process.env.NODE_CONFIG_DIR || path.join(__dirname, 'config');
 
 // Check if version should be displayed
 const versionFlags = ['-v', '-V', '--version'];
 if (versionFlags.includes(process.argv.slice(-1)[0])) {
-	console.log(require('../package').version);
-	process.exit(0);
+  console.log(require('../package').version);
+  process.exit(0);
 }
 
 if (process.argv.length === 2) {
-	// When no command is given choose by default start
-	process.argv.push('start');
+  // When no command is given choose by default start
+  process.argv.push('start');
 }
 
 const nodeVersion = process.versions.node;
 const { major, gte } = require('semver');
-
 const MINIMUM_SUPPORTED_NODE_VERSION = '18.17.0';
 const ENFORCE_MIN_NODE_VERSION = process.env.E2E_TESTS !== 'true';
-
 if (
-	(ENFORCE_MIN_NODE_VERSION && !gte(nodeVersion, MINIMUM_SUPPORTED_NODE_VERSION)) ||
-	![18, 20, 22].includes(major(nodeVersion))
+  (ENFORCE_MIN_NODE_VERSION && !gte(nodeVersion, MINIMUM_SUPPORTED_NODE_VERSION)) ||
+  ![18, 20, 22].includes(major(nodeVersion))
 ) {
-	console.log(`
-	Your Node.js version ${nodeVersion} is currently not supported by n8n.
-	Please use Node.js v${MINIMUM_SUPPORTED_NODE_VERSION} (recommended), v20, or v22 instead!
-	`);
-	process.exit(1);
+  console.log(`
+    Your Node.js version ${nodeVersion} is currently not supported by n8n.
+    Please use Node.js v${MINIMUM_SUPPORTED_NODE_VERSION} (recommended), v20, or v22 instead!
+  `);
+  process.exit(1);
 }
 
 // Disable nodejs custom inspection across the app
@@ -44,7 +40,7 @@ require('source-map-support').install();
 require('reflect-metadata');
 
 if (process.env.NODEJS_PREFER_IPV4 === 'true') {
-	require('dns').setDefaultResultOrder('ipv4first');
+  require('dns').setDefaultResultOrder('ipv4first');
 }
 
 // Node.js 20 enabled a Happy Eyeballs algorithm which enables support
@@ -57,16 +53,15 @@ require('net').setDefaultAutoSelectFamily?.(false);
 
 // WebCrypto Polyfill for older versions of Node.js 18
 if (!globalThis.crypto?.getRandomValues) {
-	globalThis.crypto = require('node:crypto').webcrypto;
+  globalThis.crypto = require('node:crypto').webcrypto;
 }
 
-if [[ -z "$N8N_PORT" ]]; then
-  N8N_PORT=5678
-fi
-
-exec node packages/cli/bin/n8n start --listen 0.0.0.0 --port $N8N_PORT "$@"
+// 포트 설정 부분 추가
+if (process.env.PORT) {
+  process.env.N8N_PORT = process.env.PORT;
+}
 
 (async () => {
-	const oclif = await import('@oclif/core');
-	await oclif.execute({ dir: __dirname });
+  const oclif = await import('@oclif/core');
+  await oclif.execute({ dir: __dirname });
 })();
